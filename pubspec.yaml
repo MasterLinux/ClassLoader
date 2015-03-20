@@ -1,6 +1,6 @@
 name: class_loader
 description: >
-  A library useful for applications or for sharing on pub.dartlang.org.
+  class_loader is a library which helps to load classes via reflection. It provides a simple API to access all instance members and contains some useful methods to work with metadata annotations.
 version: 0.0.1
 author: Christoph Grundmann <christoph.grundmann@gmail.com>
 homepage: https://github.com/MasterLinux/ClassLoader
