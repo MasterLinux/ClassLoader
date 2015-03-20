@@ -1,0 +1,10 @@
+name: class_loader
+description: >
+  A library useful for applications or for sharing on pub.dartlang.org.
+version: 0.0.1
+author: Christoph Grundmann <christoph.grundmann@gmail.com>
+homepage: https://github.com/MasterLinux/ClassLoader
+#dependencies:
+#  lib_name: any
+dev_dependencies:
+  unittest: any
