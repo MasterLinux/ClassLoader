@@ -8,6 +8,7 @@ class ClassLoader<T> {
   ClassMirror _classMirror;
   FieldCollection _fields;
   MethodCollection _methods;
+  MetadataCollection _metadata;
 
   /// Initializes the loader with the help of the [libraryName]
   /// and [className] of the required class to load. The [constructorName]
@@ -23,6 +24,7 @@ class ClassLoader<T> {
 
     _fields = new FieldCollection(_instanceMirror);
     _methods = new MethodCollection(_instanceMirror);
+    _metadata = new MetadataCollection(_classMirror);
   }
 
   /// Initializes the loader with the help of an instance
@@ -32,10 +34,13 @@ class ClassLoader<T> {
 
     _fields = new FieldCollection(_instanceMirror);
     _methods = new MethodCollection(_instanceMirror);
+    _metadata = new MetadataCollection(_classMirror);
   }
 
   /// Gets the instance of the loaded class
   T get instance => _instanceMirror.reflectee as T;
+
+  MetadataCollection get metadata => _metadata;
 
   /// Gets all getter and setter of the reflected class
   FieldCollection get fields => _fields;
@@ -137,6 +142,47 @@ class ClassLoader<T> {
     }
 
     return hasAnnotation;
+  }
+}
+
+class MetadataCollection {
+  ClassMirror _classMirror;
+
+  MetadataCollection(ClassMirror classMirror) {
+    _classMirror = classMirror;
+  }
+
+  operator [](Symbol name) {
+    return firstWhereName(name);
+  }
+
+  Iterable<dynamic> where(bool test(Symbol name, dynamic annotation)) {
+    test = test != null ? test : (meta) => true;
+    var metadata = new List();
+
+    _classMirror.metadata.forEach((meta) {
+      if(test(meta.type.simpleName, meta.reflectee)) {
+        metadata.add(meta.reflectee);
+      }
+    });
+
+    return metadata;
+  }
+
+  dynamic firstWhere(bool test(Symbol name, dynamic annotation)) {
+    var metadata = _classMirror.metadata.firstWhere((meta) {
+      return test(meta.type.simpleName, meta.reflectee);
+    }, orElse: () => null);
+
+    return metadata != null ? metadata.reflectee : null;
+  }
+
+  Iterable<dynamic> whereName(Symbol name) {
+    return where((annotationName, annotation) => annotationName == name);
+  }
+
+  dynamic firstWhereName(Symbol name) {
+    return firstWhere((annotationName, annotation) => annotationName == name);
   }
 }
 
