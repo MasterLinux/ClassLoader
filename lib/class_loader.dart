@@ -146,10 +146,10 @@ class ClassLoader<T> {
 }
 
 class MetadataCollection {
-  ClassMirror _classMirror;
+  DeclarationMirror _mirror;
 
-  MetadataCollection(ClassMirror classMirror) {
-    _classMirror = classMirror;
+  MetadataCollection(DeclarationMirror mirror) {
+    _mirror = mirror;
   }
 
   operator [](Symbol name) {
@@ -160,7 +160,7 @@ class MetadataCollection {
     test = test != null ? test : (meta) => true;
     var metadata = new List();
 
-    _classMirror.metadata.forEach((meta) {
+    _mirror.metadata.forEach((meta) {
       if(test(meta.type.simpleName, meta.reflectee)) {
         metadata.add(meta.reflectee);
       }
@@ -170,7 +170,7 @@ class MetadataCollection {
   }
 
   dynamic firstWhere(bool test(Symbol name, dynamic annotation)) {
-    var metadata = _classMirror.metadata.firstWhere((meta) {
+    var metadata = _mirror.metadata.firstWhere((meta) {
       return test(meta.type.simpleName, meta.reflectee);
     }, orElse: () => null);
 
@@ -219,6 +219,14 @@ class MethodCollection {
     return _methods.values.where(test);
   }
 
+  Method firstWhereMetadata(bool test(Symbol name, dynamic annotation), { Method orElse() }) {
+    return firstWhere((method) => method.metaData.where(test).isNotEmpty, orElse: orElse);
+  }
+
+  Iterable<Method> whereMetadata(bool test(Symbol name, dynamic annotation)) {
+    return where((method) => method.metaData.where(test).isNotEmpty);
+  }
+
   /// Invokes each method that satisfies the given [test]
   void invokeWhere(bool test(Method method), [List positionalArguments, Map<Symbol,dynamic> namedArguments]) {
     _methods.values.forEach((method) {
@@ -240,6 +248,7 @@ class MethodCollection {
 
 /// Represents a method
 class Method {
+  MetadataCollection _metadata;
   InstanceMirror _instanceMirror;
   MethodMirror _methodMirror;
   final Symbol name;
@@ -248,6 +257,8 @@ class Method {
   Method(this.name, MethodMirror methodMirror, InstanceMirror instanceMirror) {
     _instanceMirror = instanceMirror;
     _methodMirror = methodMirror;
+
+    _metadata = new MetadataCollection(_methodMirror);
   }
 
   /// Invokes the method
@@ -257,6 +268,8 @@ class Method {
 
     _instanceMirror.invoke(name, positionalArguments, namedArguments);
   }
+
+  MetadataCollection get metaData => _metadata;
 
   /// Returns true if method is abstract
   bool get isAbstract => _methodMirror.isAbstract;

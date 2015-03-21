@@ -4,4 +4,6 @@
 * Initial version
 
 ## 0.0.2
-* Add metadata getter and MetadataCollection
+* Add MetadataCollection
+* Add class metadata getter
+* Add method metadata getter

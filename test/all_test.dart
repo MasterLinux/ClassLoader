@@ -4,7 +4,21 @@ import 'package:unittest/unittest.dart';
 import 'package:class_loader/class_loader.dart';
 
 main() {
-  group('metadata tests', () {
+  group('method tests:', () {
+    ClassLoader classLoader;
+
+    setUp(() {
+      classLoader = new ClassLoader(new Symbol("apethory.class_loader.test"), new Symbol("TestClass"));
+    });
+
+    test('has method with name', () {
+      var method = classLoader.methods.firstWhere((method) => method.name == #testMethod, orElse: () => null);
+
+      expect(method, isNotNull);
+    });
+  });
+
+  group('metadata tests:', () {
     ClassLoader classLoader;
 
     setUp(() {
@@ -29,6 +43,14 @@ main() {
       expect((firstAuthorAnnotation as Author).name, AuthorName);
       expect((secondAuthorAnnotation.first as Author).name, AnotherAuthorName);
     });
+
+    test('has method with annotation', () {
+      var method = classLoader.methods.firstWhereMetadata((name, meta) {
+        return name == #Author && (meta as Author).name == AuthorName;
+      }, orElse: () => null);
+
+      expect(method, isNotNull);
+    });
   });
 }
 
@@ -39,6 +61,13 @@ const String AnotherAuthorName = "Person_2";
 @Author(AuthorName)
 @Author(AnotherAuthorName)
 class TestClass {
+
+  @Test
+  @Author(AuthorName)
+  @Author(AnotherAuthorName)
+  bool testMethod(int x, int y) {
+    return x == y;
+  }
 
 }
 
