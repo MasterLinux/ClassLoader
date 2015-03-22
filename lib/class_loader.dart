@@ -314,12 +314,31 @@ class FieldCollection {
   /// Associates the [Field] with the given [name] with the given [value]
   operator []=(Symbol name, Object value) => _instanceMirror.setField(name, value);
 
+  /// Returns the first method that satisfies the given [test]
+  Field firstWhere(bool test(Field method), { Field orElse() }) {
+    return _fields.values.firstWhere(test, orElse: orElse);
+  }
+
+  /// Returns each method that satisfies the given [test]
+  Iterable<Field> where(bool test(Field method)) {
+    return _fields.values.where(test);
+  }
+
+  Field firstWhereMetadata(bool test(Symbol name, dynamic annotation), { Field orElse() }) {
+    return firstWhere((field) => field.metadata.where(test).isNotEmpty, orElse: orElse);
+  }
+
+  Iterable<Field> whereMetadata(bool test(Symbol name, dynamic annotation)) {
+    return where((field) => field.metadata.where(test).isNotEmpty);
+  }
+
   /// Returns true if the collection contains a [Field] with the given [name]
   bool contains(Symbol name) => _fields.containsKey(name);
 }
 
 /// Representation of a getter or setter
 class Field {
+  MetadataCollection _metadata;
   InstanceMirror _instanceMirror;
   MethodMirror _methodMirror;
   final Symbol name;
@@ -328,7 +347,11 @@ class Field {
   Field(this.name, InstanceMirror instanceMirror) {
     _methodMirror = instanceMirror.type.instanceMembers[name];
     _instanceMirror = instanceMirror;
+
+    _metadata = new MetadataCollection(_methodMirror);
   }
+
+  MetadataCollection get metadata => _metadata;
 
   /// Sets the given [value]
   set(Object value) => _instanceMirror.setField(name, value);

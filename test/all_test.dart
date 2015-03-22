@@ -8,7 +8,7 @@ main() {
     ClassLoader classLoader;
 
     setUp(() {
-      classLoader = new ClassLoader(new Symbol("apethory.class_loader.test"), new Symbol("TestClass"));
+      classLoader = new ClassLoader(#apethory.class_loader.test, #TestClass);
     });
 
     test('has method with name', () {
@@ -22,7 +22,13 @@ main() {
     ClassLoader classLoader;
 
     setUp(() {
-      classLoader = new ClassLoader(new Symbol("apethory.class_loader.test"), new Symbol("TestClass"));
+      classLoader = new ClassLoader(#apethory.class_loader.test, #TestClass);
+    });
+
+    test('get field with annotation', () {
+      var field = classLoader.fields.firstWhereMetadata((name, annotation) => name == #TestAnnotation, orElse: () => null);
+
+      expect(field, isNotNull);
     });
 
     test('class has annotations', () {
@@ -61,6 +67,11 @@ const String AnotherAuthorName = "Person_2";
 @Author(AuthorName)
 @Author(AnotherAuthorName)
 class TestClass {
+
+  @Test
+  @Author(AuthorName)
+  @Author(AnotherAuthorName)
+  String get title => AuthorName;
 
   @Test
   @Author(AuthorName)
