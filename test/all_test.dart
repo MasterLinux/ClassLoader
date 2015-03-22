@@ -25,15 +25,31 @@ main() {
       classLoader = new ClassLoader(#apethory.class_loader.test, #TestClass);
     });
 
-    test('get field with annotation', () {
-      var field = classLoader.fields.firstWhereMetadata((name, annotation) => name == #TestAnnotation, orElse: () => null);
-
+    test('get first field with specific annotation', () {
+      var field = classLoader.fields.firstWhereMetadata((name, annotation) => name == #MockAnnotation, orElse: () => null);
       expect(field, isNotNull);
+
+      // test orElse
+      var missingField = classLoader.fields.firstWhereMetadata((name, annotation) => false, orElse: () => null);
+      expect(missingField, isNull);
+    });
+
+    test('get all fields with specific annotation', () {
+      var fields = classLoader.fields.whereMetadata((name, annotation) => name == #MockAnnotation);
+      var emptyFields = classLoader.fields.whereMetadata((name, annotation) => false);
+
+      expect(fields, isNotEmpty);
+      expect(fields.length, 2);
+      expect(emptyFields, isEmpty);
+    });
+
+    test('', () {
+
     });
 
     test('class has annotations', () {
       var hasAuthorAnnotation = classLoader.metadata[#Author] != null;
-      var hasTestAnnotation = classLoader.metadata[#TestAnnotation] != null;
+      var hasTestAnnotation = classLoader.metadata[#MockAnnotation] != null;
       var authorAnnotations = classLoader.metadata.whereName(#Author);
 
       expect(hasAuthorAnnotation, isTrue);
@@ -63,17 +79,20 @@ main() {
 const String AuthorName = "Person_1";
 const String AnotherAuthorName = "Person_2";
 
-@Test
+@Mock
 @Author(AuthorName)
 @Author(AnotherAuthorName)
 class TestClass {
 
-  @Test
+  @Mock
+  int number = 42;
+
+  @Mock
   @Author(AuthorName)
   @Author(AnotherAuthorName)
   String get title => AuthorName;
 
-  @Test
+  @Mock
   @Author(AuthorName)
   @Author(AnotherAuthorName)
   bool testMethod(int x, int y) {
@@ -82,10 +101,10 @@ class TestClass {
 
 }
 
-const Object Test = const TestAnnotation();
+const Object Mock = const MockAnnotation();
 
-class TestAnnotation {
-  const TestAnnotation();
+class MockAnnotation {
+  const MockAnnotation();
 }
 
 class Author {
