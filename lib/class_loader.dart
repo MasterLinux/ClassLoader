@@ -2,18 +2,30 @@ library apetheory.class_loader;
 
 import 'dart:mirrors';
 
+part 'collection.dart';
+part 'instance_member.dart';
+
 ///
 class ClassLoader<T> {
+  MetadataCollection _metadata;
   InstanceMirror _instanceMirror;
   ClassMirror _classMirror;
-  FieldCollection _fields;
-  MethodCollection _methods;
-  MetadataCollection _metadata;
+
+  /// Gets all methods of the reflected class
+  final MethodCollection methods = new MethodCollection();
+
+  /// Gets all getter of the reflected class
+  final InstanceMemberCollection<Getter> getter = new InstanceMemberCollection<Getter>();
+
+  /// Gets all setter of the reflected class
+  final InstanceMemberCollection<Setter> setter = new InstanceMemberCollection<Setter>();
+
+  final InstanceMemberCollection<Field> fields = new InstanceMemberCollection<Field>();
 
   /// Initializes the loader with the help of the [libraryName]
   /// and [className] of the required class to load. The [constructorName]
   /// can be used to use a specific constructor for initialization
-  ClassLoader(Symbol libraryName, Symbol className, [Symbol constructorName, List positionalArguments, Map<Symbol,dynamic> namedArguments]) {
+  ClassLoader(Symbol libraryName, Symbol className, {Symbol constructorName, List positionalArguments, Map<Symbol,dynamic> namedArguments, bool excludePrivateMembers: true}) {
     _classMirror = _getClassMirror(libraryName, className);
 
     constructorName = constructorName != null ? constructorName : const Symbol('');
@@ -22,19 +34,56 @@ class ClassLoader<T> {
 
     _instanceMirror = _classMirror.newInstance(constructorName, positionalArguments, namedArguments);
 
-    _fields = new FieldCollection(_instanceMirror);
-    _methods = new MethodCollection(_instanceMirror);
-    _metadata = new MetadataCollection(_classMirror);
+    _load(_classMirror, _instanceMirror, excludePrivateMembers);
   }
 
   /// Initializes the loader with the help of an instance
-  ClassLoader.fromInstance(T reflectee) {
+  ClassLoader.fromInstance(T reflectee, {excludePrivateMembers: true}) {
     _instanceMirror = reflect(reflectee);
     _classMirror = _instanceMirror.type;
 
-    _fields = new FieldCollection(_instanceMirror);
-    _methods = new MethodCollection(_instanceMirror);
-    _metadata = new MetadataCollection(_classMirror);
+    _load(_classMirror, _instanceMirror, excludePrivateMembers);
+  }
+
+  void _load(ClassMirror classMirror, InstanceMirror instanceMirror, bool excludePrivateMembers) {
+    _metadata = new MetadataCollection(classMirror);
+
+    instanceMirror.type.instanceMembers.forEach((name, mirror) {
+
+      if(!mirror.isPrivate || !excludePrivateMembers) {
+
+        // add method
+        if(mirror.isRegularMethod && !mirror.isSetter && !mirror.isGetter && !mirror.isConstructor) {
+          methods.add(new Method(name, instanceMirror));
+        }
+
+        // add getter
+        else if(mirror.isGetter && !mirror.isSynthetic) {
+          getter.add(new Getter(name, instanceMirror));
+        }
+
+        // add setter
+        else if(mirror.isSetter && !mirror.isSynthetic) {
+          setter.add(new Setter(name, instanceMirror));
+        }
+
+        // add synthetic members
+        else if(mirror.isGetter || mirror.isSetter) {
+          Field field = fields.firstWhereName(Field.createFieldName(name), orElse: () => null);
+
+          if(field == null) {
+            field = new Field(name, instanceMirror);
+            fields.add(field);
+          }
+
+          if(mirror.isSetter) {
+            field.setter = new Setter(name, instanceMirror);
+          } else {
+            field.getter = new Getter(name, instanceMirror);
+          }
+        }
+      }
+    });
   }
 
   /// Gets the instance of the loaded class
@@ -42,67 +91,14 @@ class ClassLoader<T> {
 
   MetadataCollection get metadata => _metadata;
 
-  /// Gets all getter and setter of the reflected class
-  FieldCollection get fields => _fields;
+  /// Returns true if class contains a [Getter] with the given [name]
+  bool hasGetter(Symbol name) => getter.contains(name);
 
-  /// Gets all methods of the reflected class
-  MethodCollection get methods => _methods;
+  /// Returns true if class contains a [Setter] with the given [name]
+  bool hasSetter(Symbol name) => setter.contains(name);
 
-  /// Returns true if class contains a getter or setter the given [name]
-  bool hasField(Symbol name) => _fields.contains(name);
-
-  /// Returns true if class contains method the given [name]
-  bool hasMethod(Symbol name) => _methods.contains(name);
-
-  /**
-   * Invokes a method by its [name]
-   */
-  void invokeMethod(Symbol name, [List positionalArguments, Map<Symbol,dynamic> namedArguments]) {
-    positionalArguments = positionalArguments != null ? positionalArguments : [];
-    namedArguments = namedArguments != null ? namedArguments : {};
-
-    _instanceMirror.invoke(name, positionalArguments, namedArguments);
-  }
-
-  /**
-   * Invokes the first occurrence of the method which
-   * is annotated with a specific annotation
-   */
-  void invokeAnnotatedMethod(Symbol annotationName, {List positionalArguments, Map<Symbol,dynamic> namedArguments, bool condition(annotation)}) {
-    var instanceMembers = _instanceMirror.type.instanceMembers;
-
-    var methodMirror = instanceMembers.values.firstWhere((MethodMirror methodMirror) {
-      return _isAnnotatedMethod(methodMirror, annotationName, condition);
-    }, orElse: () => null);
-
-    if(methodMirror != null) {
-      invokeMethod(
-          methodMirror.simpleName,
-          positionalArguments,
-          namedArguments
-      );
-    }
-  }
-
-  /**
-   * Invokes each method which is
-   * annotated with a specific annotation
-   */
-  void invokeAnnotatedMethods(Symbol annotationName, {List positionalArguments, Map<Symbol,dynamic> namedArguments, bool condition(annotation)}) {
-    positionalArguments = positionalArguments != null ? positionalArguments : [];
-    namedArguments = namedArguments != null ? namedArguments : {};
-    var instanceMembers = _instanceMirror.type.instanceMembers;
-
-    instanceMembers.forEach((Symbol methodName, MethodMirror methodMirror) {
-      if(_isAnnotatedMethod(methodMirror, annotationName, condition)) {
-        invokeMethod(
-            methodName,
-            positionalArguments,
-            namedArguments
-        );
-      }
-    });
-  }
+  /// Returns true if class contains a [Method] with the given [name]
+  bool hasMethod(Symbol name) => methods.contains(name);
 
   /**
    * Gets the mirror of a specific class with the help of
@@ -120,31 +116,9 @@ class ClassLoader<T> {
       throw new MissingClassException(className.toString());
     }
   }
-
-  /**
-   * Checks whether the given method is annotated with a specific annotation
-   */
-  bool _isAnnotatedMethod(MethodMirror methodMirror, Symbol annotationSymbol, bool condition(annotation)) {
-    condition = condition != null ? condition : (a) => true;
-    var hasAnnotation = false;
-
-    if(methodMirror.isRegularMethod) {
-
-      var annotation = methodMirror.metadata.firstWhere((meta) {
-        return meta.hasReflectee &&
-        meta.type.simpleName == annotationSymbol &&
-        condition(meta.reflectee);
-      }, orElse: () => null);
-
-      if(annotation != null) {
-        hasAnnotation = true;
-      }
-    }
-
-    return hasAnnotation;
-  }
 }
 
+/*
 class MetadataCollection {
   DeclarationMirror _mirror;
 
@@ -365,6 +339,7 @@ class Field {
   /// Returns true if [Field] is a getter
   bool get isGetter => _methodMirror.isGetter;
 }
+*/
 
 class MissingClassException implements Exception {
   final String className;
@@ -375,3 +350,4 @@ class MissingClassException implements Exception {
     return "Class [$className] is missing";
   }
 }
+

@@ -1,30 +1,8 @@
-//part of apetheory.class_loader;
-
-/// Representation of an instance member
-abstract class InstanceMember {
-
-  /// Gets the metadata of the instance member
-  MetadataCollection get metadata;
-
-  /// Gets the name of the instance member
-  Symbol get name;
-
-  /// Returns true if the [InstanceMember] is annotated with
-  /// the metadata annotation with the given [name]
-  bool hasMetadata(Symbol name) => this[name] != null;
-
-  /// Returns the first occurrence of the `metadata annotation` with the given [annotationName]
-  /// or null if the instance member is not annotated with that annotation
-  operator [](Symbol annotationName) {
-    return metadata.firstWhere((name, annotation) {
-      return name == annotationName;
-    }, orElse: () => null);
-  }
-}
+part of apetheory.class_loader;
 
 abstract class Collection<T> {
 
-  T operator [](Symbol name) => firstWhereName(name);
+  T operator [](Symbol name) => firstWhereName(name, orElse: () => null);
 
   /// Returns each object that satisfies the given [test]
   Iterable<T> where(bool test(Symbol name, T obj));
@@ -44,20 +22,34 @@ abstract class Collection<T> {
   }
 }
 
-abstract class InstanceMemberCollection<T extends InstanceMember> extends Collection<T> {
+class InstanceMemberCollection<T extends InstanceMember> extends Collection<T> {
   Map<Symbol, T> entries = new Map<Symbol, T>();
 
   operator []=(Symbol name, T obj) => entries[name] = obj;
 
+  void add(T instanceMember) {
+    this[instanceMember.name] = instanceMember;
+  }
+
   @override
   bool contains(Symbol name) => entries.containsKey(name);
 
+  @override
+  T firstWhere(bool test(Symbol name, T instanceMember), { T orElse() }) {
+    return entries.values.firstWhere((instanceMember) => test(instanceMember.name, instanceMember), orElse: orElse);
+  }
+
+  @override
+  Iterable<T> where(bool test(Symbol name, T instanceMember)) {
+    return entries.values.where((instanceMember) => test(instanceMember.name, instanceMember));
+  }
+
   T firstWhereMetadata(bool test(Symbol name, dynamic annotation), { T orElse() }) {
-    return firstWhere((name, obj) => obj.metadata.where(test).isNotEmpty, orElse: orElse);
+    return firstWhere((name, instanceMember) => instanceMember.metadata.where(test).isNotEmpty, orElse: orElse);
   }
 
   Iterable<T> whereMetadata(bool test(Symbol name, dynamic annotation)) {
-    return where((name, obj) => obj.metadata.where(test).isNotEmpty);
+    return where((name, instanceMember) => instanceMember.metadata.where(test).isNotEmpty);
   }
 }
 
@@ -91,5 +83,26 @@ class MetadataCollection extends Collection<dynamic> {
     }, orElse: orElse);
 
     return metadata != null ? metadata.reflectee : null;
+  }
+}
+
+class MethodCollection extends InstanceMemberCollection<Method> {
+
+  /// Invokes each method that satisfies the given [test]
+  void invokeWhere(bool test(Method method), [List positionalArguments, Map<Symbol,dynamic> namedArguments]) {
+    entries.values.forEach((method) {
+      if(test(method)) {
+        method.invoke(positionalArguments, namedArguments);
+      }
+    });
+  }
+
+  /// Invokes the first method that satisfies the given [test]
+  void invokeFirstWhere(bool test(Method method), [List positionalArguments, Map<Symbol,dynamic> namedArguments]) {
+    var method = firstWhere(test, orElse: () => null);
+
+    if(method != null) {
+      method.invoke(positionalArguments, namedArguments);
+    }
   }
 }
