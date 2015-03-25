@@ -2,6 +2,8 @@ library apetheory.class_loader;
 
 import 'dart:mirrors';
 
+import 'utilities.dart' as util;
+
 part 'collection.dart';
 part 'instance_member.dart';
 
@@ -67,19 +69,11 @@ class ClassLoader<T> {
           setter.add(new Setter(name, instanceMirror));
         }
 
-        // add synthetic members
+        // add field
+        // TODO: iterate thru instanceMirror.type.declarations[name] to get fields
         else if(mirror.isGetter || mirror.isSetter) {
-          Field field = fields.firstWhereName(Field.createFieldName(name), orElse: () => null);
-
-          if(field == null) {
-            field = new Field(name, instanceMirror);
-            fields.add(field);
-          }
-
-          if(mirror.isSetter) {
-            field.setter = new Setter(name, instanceMirror);
-          } else {
-            field.getter = new Getter(name, instanceMirror);
+          if(!fields.contains(util.createInstanceMemberName(name))) {
+            fields.add(new Field(name, instanceMirror));
           }
         }
       }

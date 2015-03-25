@@ -4,13 +4,13 @@ part of apetheory.class_loader;
 abstract class InstanceMember {
   final InstanceMirror owner;
   MetadataCollection _metadata;
-  MethodMirror _mirror;
+  DeclarationMirror _mirror;
 
   /// Gets the metadata of the instance member
   MetadataCollection get metadata => _metadata;
 
   /// Gets the mirror of the instance member
-  MethodMirror get mirror => _mirror;
+  DeclarationMirror get mirror => _mirror;
 
   /// Gets the name of the instance member
   final Symbol name;
@@ -71,10 +71,15 @@ class Setter extends InstanceMember {
 }
 
 class Field extends InstanceMember {
-  Setter setter;
-  Getter getter;
 
-  Field(Symbol name, InstanceMirror owner) : super(Field.createFieldName(name), owner);
+  Field(Symbol name, InstanceMirror owner) : super(util.createInstanceMemberName(name), owner) {
+    // TODO: refactor field class to avoid multiple instantiation of _metadata
+    var field = owner.type.declarations[name];
+
+    if(field is VariableMirror) {
+      _metadata = new MetadataCollection(field);
+    }
+  }
 
   /// Gets the value
   Object get() => owner.getField(name).reflectee;
@@ -82,22 +87,8 @@ class Field extends InstanceMember {
   /// Sets the given [value]
   set(Object value) => owner.setField(name, value).reflectee;
 
-  bool equals(Field other) {
-    var otherName = Field.createFieldName(other.name);
-
-    return owner == other.owner && name == otherName;
+  bool equals(Field other) { // TODO
+    return name == util.createInstanceMemberName(other.name);
   }
-
-  static Symbol createFieldName(Symbol symbol) {
-    var name = MirrorSystem.getName(symbol);
-    var isSetter = name.endsWith("=");
-
-    if(isSetter) {
-      name = name.substring(0, name.length - 1);
-    }
-
-    return isSetter ? new Symbol(name) : symbol;
-  }
-
 }
 

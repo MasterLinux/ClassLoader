@@ -2,19 +2,15 @@ library apethory.class_loader.test;
 
 import 'package:unittest/unittest.dart';
 import 'package:class_loader/class_loader.dart';
+import 'package:class_loader/utilities.dart' as util;
 
 main() {
 
-  group('Field tests:', () {
-    ClassLoader classLoader;
+  group('utilities tests:', () {
 
-    setUp(() {
-      classLoader = new ClassLoader(#apethory.class_loader.test, #ArticleMock);
-    });
-
-    test('create field name', () {
+    test('create instance member name', () {
       var expectedName = new Symbol('test');
-      var actualName = Field.createFieldName(new Symbol('test='));
+      var actualName = util.createInstanceMemberName(new Symbol('test='));
 
       expect(actualName, expectedName);
     });
@@ -73,14 +69,39 @@ main() {
       expect(setterUnderTest.length, 2);
     });
 
+    test('find first field with specific annotation', () {
+      var fieldUnderTest = classLoader.fields.firstWhereMetadata((name, meta) => name == #MockFieldAnnotation, orElse: () => null);
+
+      expect(fieldUnderTest, isNotNull);
+    });
+
+    test('find all fields with specific annotation', () {
+      // TODO
+    });
+
     test('find first method with specific annotation', () {
-      var methodUnderTest = classLoader.methods.firstWhereMetadata((name, meta) => name == #MockMethodAnnotation, orElse: () => null);
+      var methodUnderTest = classLoader.methods.firstWhereMetadata((name, meta) => name == #MockMethod, orElse: () => null);
       var orElseResult = classLoader.methods.firstWhereMetadata((name, meta) => false, orElse: () => null);
 
       expect(methodUnderTest, isNotNull);
       expect(methodUnderTest is Method, isTrue);
       expect(orElseResult, isNull);
     });
+
+    test('find all methods with specific annotation', () {
+      var methodsUnderTest = classLoader.methods.whereMetadata((name, meta) => name == #MockMethod);
+      var otherMethodsUnderTest = classLoader.methods.whereMetadata((name, meta) => name == #MockMethod && (meta as MockMethod).author == AuthorName);
+
+      expect(methodsUnderTest, isNotNull);
+      expect(methodsUnderTest, isNotEmpty);
+      expect(methodsUnderTest.length, 2);
+
+      expect(otherMethodsUnderTest, isNotNull);
+      expect(otherMethodsUnderTest, isNotEmpty);
+      expect(otherMethodsUnderTest.length, 1);
+    });
+
+
 
     /*
     test('class has annotations', () {
@@ -118,6 +139,7 @@ class ArticleMock {
   String _subtitle;
   List<String> _authors = <String>[];
 
+  @MockField
   int date = 42;
 
   @MockGetter
@@ -134,13 +156,23 @@ class ArticleMock {
   set subtitle(String subtitle) => _subtitle = subtitle;
 
 
+  // instance member without annotations
   List<String> get authors => _authors;
-
   set authors(List<String> authors) => _authors = authors;
 
 
-  @MockMethod
+  @MockMethod(AuthorName)
   bool testMethod(int x, int y) {
+    return x == y;
+  }
+
+  @MockMethod(AnotherAuthorName)
+  bool anotherTestMethod(int x, int y) {
+    return x == y;
+  }
+
+  // method without annotations
+  bool thirdTestMethod(int x, int y) {
     return x == y;
   }
 }
@@ -163,10 +195,16 @@ class MockGetterAnnotation {
   const MockGetterAnnotation();
 }
 
-const Object MockMethod = const MockMethodAnnotation();
+const Object MockField = const MockFieldAnnotation();
 
-class MockMethodAnnotation {
-  const MockMethodAnnotation();
+class MockFieldAnnotation {
+  const MockFieldAnnotation();
+}
+
+class MockMethod {
+  final String author;
+
+  const MockMethod(this.author);
 }
 
 class Author {
