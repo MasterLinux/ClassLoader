@@ -112,3 +112,25 @@ class MethodCollection extends InstanceMemberCollection<Method> {
     return result;
   }
 }
+
+class SetterCollection extends InstanceMemberCollection<Setter> {
+
+  @override
+  Iterable<Setter> whereName(Symbol name) {
+    return where((objName, obj) => _isNameEqual(name, objName));
+  }
+
+  @override
+  Setter firstWhereName(Symbol name, { Setter orElse() }) {
+    return firstWhere((objName, obj) => _isNameEqual(name, objName), orElse: orElse);
+  }
+
+  bool _isNameEqual(Symbol n1, Symbol n2) {
+    n1 = util.createInstanceMemberName(n1);
+    n2 = util.createInstanceMemberName(n2);
+
+    print("bla");
+
+    return n1 == n2;
+  }
+}

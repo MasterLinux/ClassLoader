@@ -20,7 +20,7 @@ class ClassLoader<T> {
   final InstanceMemberCollection<Getter> getter = new InstanceMemberCollection<Getter>();
 
   /// Gets all setter of the reflected class
-  final InstanceMemberCollection<Setter> setter = new InstanceMemberCollection<Setter>();
+  final SetterCollection setter = new SetterCollection();
 
   /// Gets all fields of the reflected class
   final InstanceMemberCollection<Field> fields = new InstanceMemberCollection<Field>();

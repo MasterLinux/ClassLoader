@@ -60,7 +60,7 @@ class Getter extends InstanceMember<MethodMirror> {
 class Setter extends InstanceMember<MethodMirror> {
 
   /// Initializes the field
-  Setter(Symbol name, MethodMirror mirror, InstanceMirror owner) : super(name, mirror, owner);
+  Setter(Symbol name, MethodMirror mirror, InstanceMirror owner) : super(util.createInstanceMemberName(name), mirror, owner);
 
   /// Sets the given [value]
   set(Object value) => owner.setField(name, value).reflectee;

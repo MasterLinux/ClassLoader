@@ -2,6 +2,7 @@ part of apethory.class_loader.test;
 
 class MethodTests implements TestClass {
 
+  @override
   void runTests() {
     group('method tests:', () {
       ClassLoader classLoader;

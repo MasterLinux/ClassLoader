@@ -8,14 +8,17 @@ part 'mock/annotations.dart';
 part 'mock/test_class.dart';
 part 'metadata_test.dart';
 part 'method_test.dart';
+part 'getter_test.dart';
+part 'setter_test.dart';
 
 abstract class TestClass {
   void runTests();
 }
 
 main() {
-
   new MethodTests().runTests();
+  new GetterTests().runTests();
+  new SetterTests().runTests();
   new MetadataTests().runTests();
 
   group('utilities tests:', () {
@@ -27,6 +30,4 @@ main() {
       expect(actualName, expectedName);
     });
   });
-
-
 }

@@ -2,13 +2,15 @@ part of apethory.class_loader.test;
 
 const String AuthorName = "Person_1";
 const String AnotherAuthorName = "Person_2";
+const String ArticleTitle = "Title";
+const String ArticleSubtitle = "Subtitle";
 
 @Mock
 @MockAuthor(AuthorName)
 @MockAuthor(AnotherAuthorName)
 class ArticleMock {
-  String _title;
-  String _subtitle;
+  String _title = ArticleTitle;
+  String _subtitle = ArticleSubtitle;
   List<String> _authors = <String>[];
 
   @MockField
@@ -24,7 +26,7 @@ class ArticleMock {
   String get title => _title;
 
   @MockSetter
-  set title(String str) => _title = title;
+  set title(String title) => _title = title;
 
 
   @MockGetter

@@ -2,6 +2,7 @@ part of apethory.class_loader.test;
 
 class MetadataTests implements TestClass {
 
+  @override
   void runTests() {
     group('metadata tests:', () {
       ClassLoader classLoader;
