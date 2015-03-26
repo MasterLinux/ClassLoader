@@ -129,8 +129,6 @@ class SetterCollection extends InstanceMemberCollection<Setter> {
     n1 = util.createInstanceMemberName(n1);
     n2 = util.createInstanceMemberName(n2);
 
-    print("bla");
-
     return n1 == n2;
   }
 }
