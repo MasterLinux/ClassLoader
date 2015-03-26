@@ -34,7 +34,7 @@ abstract class InstanceMember<T extends DeclarationMirror> {
 class Method extends InstanceMember<MethodMirror> {
 
   /// Returns true if method is abstract
-  bool get isAbstract => _methodMirror.isAbstract;
+  bool get isAbstract => mirror.isAbstract;
 
   /// Initializes the method
   Method(Symbol name, MethodMirror mirror, InstanceMirror owner) : super(name, mirror, owner);

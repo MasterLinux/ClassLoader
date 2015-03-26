@@ -28,7 +28,7 @@ class ClassLoader<T> {
   /// Initializes the loader with the help of the [libraryName]
   /// and [className] of the required class to load. The [constructorName]
   /// can be used to use a specific constructor for initialization
-  ClassLoader(Symbol libraryName, Symbol className, {Symbol constructorName, List positionalArguments, Map<Symbol,dynamic> namedArguments, bool excludePrivateMembers: true}) {
+  ClassLoader(Symbol libraryName, Symbol className, [Symbol constructorName, List positionalArguments, Map<Symbol,dynamic> namedArguments]) {
     _classMirror = _getClassMirror(libraryName, className);
 
     constructorName = constructorName != null ? constructorName : const Symbol('');
@@ -36,45 +36,41 @@ class ClassLoader<T> {
     namedArguments = namedArguments != null ? namedArguments : {};
 
     _instanceMirror = _classMirror.newInstance(constructorName, positionalArguments, namedArguments);
-
-    _load(_classMirror, _instanceMirror, excludePrivateMembers);
   }
 
   /// Initializes the loader with the help of an instance of the class to reflect
-  ClassLoader.fromInstance(T reflectee, {excludePrivateMembers: true}) {
+  ClassLoader.fromInstance(T reflectee) {
     _instanceMirror = reflect(reflectee);
     _classMirror = _instanceMirror.type;
-
-    _load(_classMirror, _instanceMirror, excludePrivateMembers);
   }
 
-  // TODO: make public, change signature, use async keyword
-  void _load(ClassMirror classMirror, InstanceMirror instanceMirror, bool excludePrivateMembers) {
-    _metadata = new MetadataCollection(classMirror);
+  ///
+  load({bool excludePrivateMembers: true}) async {
+    _metadata = new MetadataCollection(_classMirror);
 
-    instanceMirror.type.declarations.forEach((name, mirror) {
+    _instanceMirror.type.declarations.forEach((name, mirror) {
 
       if(!mirror.isPrivate || !excludePrivateMembers) {
         if(mirror is MethodMirror) {
           // add method
           if(mirror.isRegularMethod && !mirror.isSetter && !mirror.isGetter && !mirror.isConstructor) {
-            methods.add(new Method(name, mirror, instanceMirror));
+            methods.add(new Method(name, mirror, _instanceMirror));
           }
 
           // add getter
           else if(mirror.isGetter && !mirror.isSynthetic) {
-            getter.add(new Getter(name, mirror, instanceMirror));
+            getter.add(new Getter(name, mirror, _instanceMirror));
           }
 
           // add setter
           else if(mirror.isSetter && !mirror.isSynthetic) {
-            setter.add(new Setter(name, mirror, instanceMirror));
+            setter.add(new Setter(name, mirror, _instanceMirror));
           }
         }
 
         // add field
         else if(mirror is VariableMirror) {
-          fields.add(new Field(name, mirror, instanceMirror));
+          fields.add(new Field(name, mirror, _instanceMirror));
         }
       }
     });

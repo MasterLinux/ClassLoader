@@ -7,8 +7,9 @@ class MetadataTests implements TestClass {
     group('metadata tests:', () {
       ClassLoader classLoader;
 
-      setUp(() {
+      setUp(() async {
         classLoader = new ClassLoader(#apethory.class_loader.test, #ArticleMock);
+        await classLoader.load();
       });
 
       test('find first getter with specific annotation', () {

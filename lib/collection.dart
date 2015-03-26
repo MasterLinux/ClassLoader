@@ -94,7 +94,7 @@ class MethodCollection extends InstanceMemberCollection<Method> {
   /// Invokes each method that satisfies the given [test]
   void invokeWhere(bool test(Symbol name, Method method), [List positionalArguments, Map<Symbol,dynamic> namedArguments]) {  // TODO: return list with results ?
     entries.values.forEach((method) {
-      if(test(method)) {
+      if(test(method.name, method)) {
         method.invoke(positionalArguments, namedArguments);
       }
     });

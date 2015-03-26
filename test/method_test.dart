@@ -7,8 +7,9 @@ class MethodTests implements TestClass {
     group('method tests:', () {
       ClassLoader classLoader;
 
-      setUp(() {
+      setUp(() async {
         classLoader = new ClassLoader(#apethory.class_loader.test, #ArticleMock);
+        await classLoader.load();
       });
 
       test('get method by name', () {
