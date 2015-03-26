@@ -40,7 +40,7 @@ class ClassLoader<T> {
     _load(_classMirror, _instanceMirror, excludePrivateMembers);
   }
 
-  /// Initializes the loader with the help of an instance
+  /// Initializes the loader with the help of an instance of the class to reflect
   ClassLoader.fromInstance(T reflectee, {excludePrivateMembers: true}) {
     _instanceMirror = reflect(reflectee);
     _classMirror = _instanceMirror.type;

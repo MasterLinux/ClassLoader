@@ -1,6 +1,6 @@
 part of apethory.class_loader.test;
 
-class MetadataTest implements TestClass {
+class MetadataTests implements TestClass {
 
   void runTests() {
     group('metadata tests:', () {
@@ -78,6 +78,21 @@ class MetadataTest implements TestClass {
         expect(otherMethodsUnderTest, isNotNull);
         expect(otherMethodsUnderTest, isNotEmpty);
         expect(otherMethodsUnderTest.length, 1);
+      });
+
+      test('get metadata from method via indexer', () {
+        var annotationUnderTest = classLoader.methods[#sum][#MockAuthor];
+
+        expect(annotationUnderTest, isNotNull);
+        expect(annotationUnderTest is MockAuthor, isTrue);
+      });
+
+      test('method has metadata', () {
+        var hasMetadata = classLoader.methods[#sum].hasMetadata(#MockMethod);
+        expect(hasMetadata, isTrue);
+
+        hasMetadata = classLoader.methods[#sum].hasMetadata(#Undefined);
+        expect(hasMetadata, isFalse);
       });
 
       test('get metadata from class via indexer', () {

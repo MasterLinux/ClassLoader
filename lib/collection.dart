@@ -2,21 +2,24 @@ part of apetheory.class_loader;
 
 abstract class Collection<T> {
 
+  /// Returns the first result with the given [name]
   T operator [](Symbol name) => firstWhereName(name, orElse: () => null);
 
-  /// Returns each object that satisfies the given [test]
+  /// Returns all results that satisfies the given [test]
   Iterable<T> where(bool test(Symbol name, T obj));
 
-  /// Returns the first object of type [T] that satisfies the given [test]
+  /// Returns the first result that satisfies the given [test]
   T firstWhere(bool test(Symbol name, T obj), { T orElse() });
 
   /// Returns true if the collection contains an object with the given [name]
   bool contains(Symbol name);
 
+  /// Returns all results with the given [name]
   Iterable<T> whereName(Symbol name) {
     return where((objName, obj) => objName == name);
   }
 
+  /// Returns the first result with the given [name]
   T firstWhereName(Symbol name, { T orElse() }) {
     return firstWhere((objName, obj) => objName == name, orElse: orElse);
   }
@@ -89,7 +92,7 @@ class MetadataCollection extends Collection<dynamic> {
 class MethodCollection extends InstanceMemberCollection<Method> {
 
   /// Invokes each method that satisfies the given [test]
-  void invokeWhere(bool test(Method method), [List positionalArguments, Map<Symbol,dynamic> namedArguments]) {
+  void invokeWhere(bool test(Symbol name, Method method), [List positionalArguments, Map<Symbol,dynamic> namedArguments]) {  // TODO: return list with results ?
     entries.values.forEach((method) {
       if(test(method)) {
         method.invoke(positionalArguments, namedArguments);
@@ -98,11 +101,14 @@ class MethodCollection extends InstanceMemberCollection<Method> {
   }
 
   /// Invokes the first method that satisfies the given [test]
-  void invokeFirstWhere(bool test(Method method), [List positionalArguments, Map<Symbol,dynamic> namedArguments]) {
+  dynamic invokeFirstWhere(bool test(Symbol name, Method method), [List positionalArguments, Map<Symbol,dynamic> namedArguments]) {
     var method = firstWhere(test, orElse: () => null);
+    dynamic result = null;
 
     if(method != null) {
-      method.invoke(positionalArguments, namedArguments);
+      result = method.invoke(positionalArguments, namedArguments);
     }
+
+    return result;
   }
 }

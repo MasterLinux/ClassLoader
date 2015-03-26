@@ -7,6 +7,7 @@ import 'package:class_loader/utilities.dart' as util;
 part 'mock/annotations.dart';
 part 'mock/test_class.dart';
 part 'metadata_test.dart';
+part 'method_test.dart';
 
 abstract class TestClass {
   void runTests();
@@ -14,7 +15,8 @@ abstract class TestClass {
 
 main() {
 
-  new MetadataTest().runTests();
+  new MethodTests().runTests();
+  new MetadataTests().runTests();
 
   group('utilities tests:', () {
 
@@ -26,17 +28,5 @@ main() {
     });
   });
 
-  group('method tests:', () {
-    ClassLoader classLoader;
 
-    setUp(() {
-      classLoader = new ClassLoader(#apethory.class_loader.test, #ArticleMock);
-    });
-
-    test('has method with name', () {
-      var methodUnderTest = classLoader.methods.firstWhere((name, method) => name == #testMethod, orElse: () => null);
-
-      expect(methodUnderTest, isNotNull);
-    });
-  });
 }

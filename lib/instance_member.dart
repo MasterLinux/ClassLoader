@@ -15,7 +15,6 @@ abstract class InstanceMember<T extends DeclarationMirror> {
   final Symbol name;
 
   InstanceMember(this.name, this.mirror, this.owner) {
-    //_mirror = owner.type.instanceMembers[name];
     _metadata = new MetadataCollection(mirror);
   }
 
@@ -26,11 +25,9 @@ abstract class InstanceMember<T extends DeclarationMirror> {
   /// Returns the first occurrence of the `metadata annotation` with the given [annotationName]
   /// or null if the instance member is not annotated with that annotation
   operator [](Symbol annotationName) {
-    var meta = metadata.firstWhere((name, annotation) {
+    return metadata.firstWhere((name, annotation) {
       return name == annotationName;
     }, orElse: () => null);
-
-    return meta != null ? meta.reflectee : null;
   }
 }
 
@@ -43,11 +40,11 @@ class Method extends InstanceMember<MethodMirror> {
   Method(Symbol name, MethodMirror mirror, InstanceMirror owner) : super(name, mirror, owner);
 
   /// Invokes the method
-  void invoke([List positionalArguments, Map<Symbol,dynamic> namedArguments]) {
+  dynamic invoke([List positionalArguments, Map<Symbol,dynamic> namedArguments]) {
     positionalArguments = positionalArguments != null ? positionalArguments : [];
     namedArguments = namedArguments != null ? namedArguments : {};
 
-    owner.invoke(name, positionalArguments, namedArguments);
+    return owner.invoke(name, positionalArguments, namedArguments).reflectee;
   }
 }
 

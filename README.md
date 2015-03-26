@@ -1,5 +1,7 @@
 # ClassLoader
 
+[![Build Status](https://drone.io/github.com/MasterLinux/ClassLoader/status.png)](https://drone.io/github.com/MasterLinux/ClassLoader/latest)
+
 #Milestones
 ###0.0.2
 * initial metadata implementation

@@ -40,17 +40,18 @@ class ArticleMock {
 
 
   @MockMethod(AuthorName)
-  bool testMethod(int x, int y) {
+  bool isSame(int x, int y) {
     return x == y;
   }
 
   @MockMethod(AnotherAuthorName)
-  bool anotherTestMethod(int x, int y) {
-    return x == y;
+  @MockAuthor(AnotherAuthorName)
+  int sum(int x, int y) {
+    return x + y;
   }
 
   // method without annotations
-  bool thirdTestMethod(int x, int y) {
-    return x == y;
+  void printNumbers(int x, int y) {
+    print("x: $x - y: $y");
   }
 }
