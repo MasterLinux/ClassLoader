@@ -1,22 +1,21 @@
 part of apetheory.class_loader;
 
 /// Representation of an instance member
-abstract class InstanceMember {
+abstract class InstanceMember<T extends DeclarationMirror> {
   final InstanceMirror owner;
   MetadataCollection _metadata;
-  DeclarationMirror _mirror;
 
   /// Gets the metadata of the instance member
   MetadataCollection get metadata => _metadata;
 
   /// Gets the mirror of the instance member
-  DeclarationMirror get mirror => _mirror;
+  final T mirror;
 
   /// Gets the name of the instance member
   final Symbol name;
 
-  InstanceMember(this.name, this.owner) {
-    _mirror = owner.type.instanceMembers[name];
+  InstanceMember(this.name, this.mirror, this.owner) {
+    //_mirror = owner.type.instanceMembers[name];
     _metadata = new MetadataCollection(mirror);
   }
 
@@ -35,13 +34,13 @@ abstract class InstanceMember {
   }
 }
 
-class Method extends InstanceMember {
+class Method extends InstanceMember<MethodMirror> {
 
   /// Returns true if method is abstract
   bool get isAbstract => _methodMirror.isAbstract;
 
   /// Initializes the method
-  Method(Symbol name, InstanceMirror owner) : super(name, owner);
+  Method(Symbol name, MethodMirror mirror, InstanceMirror owner) : super(name, mirror, owner);
 
   /// Invokes the method
   void invoke([List positionalArguments, Map<Symbol,dynamic> namedArguments]) {
@@ -52,43 +51,32 @@ class Method extends InstanceMember {
   }
 }
 
-class Getter extends InstanceMember {
+class Getter extends InstanceMember<MethodMirror> {
 
   /// Initializes the field
-  Getter(Symbol name, InstanceMirror owner) : super(name, owner);
+  Getter(Symbol name, MethodMirror mirror, InstanceMirror owner) : super(name, mirror, owner);
 
   /// Gets the value
   Object get() => owner.getField(name).reflectee;
 }
 
-class Setter extends InstanceMember {
+class Setter extends InstanceMember<MethodMirror> {
 
   /// Initializes the field
-  Setter(Symbol name, InstanceMirror owner) : super(name, owner);
+  Setter(Symbol name, MethodMirror mirror, InstanceMirror owner) : super(name, mirror, owner);
 
   /// Sets the given [value]
   set(Object value) => owner.setField(name, value).reflectee;
 }
 
-class Field extends InstanceMember {
+class Field extends InstanceMember<VariableMirror> {
 
-  Field(Symbol name, InstanceMirror owner) : super(util.createInstanceMemberName(name), owner) {
-    // TODO: refactor field class to avoid multiple instantiation of _metadata
-    var field = owner.type.declarations[name];
-
-    if(field is VariableMirror) {
-      _metadata = new MetadataCollection(field);
-    }
-  }
+  Field(Symbol name, VariableMirror mirror, InstanceMirror owner) : super(name, mirror, owner);
 
   /// Gets the value
   Object get() => owner.getField(name).reflectee;
 
   /// Sets the given [value]
   set(Object value) => owner.setField(name, value).reflectee;
-
-  bool equals(Field other) { // TODO
-    return name == util.createInstanceMemberName(other.name);
-  }
 }
 

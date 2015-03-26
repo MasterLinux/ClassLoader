@@ -50,31 +50,29 @@ class ClassLoader<T> {
   void _load(ClassMirror classMirror, InstanceMirror instanceMirror, bool excludePrivateMembers) {
     _metadata = new MetadataCollection(classMirror);
 
-    instanceMirror.type.instanceMembers.forEach((name, mirror) {
+    instanceMirror.type.declarations.forEach((name, mirror) {
 
       if(!mirror.isPrivate || !excludePrivateMembers) {
+        if(mirror is MethodMirror) {
+          // add method
+          if(mirror.isRegularMethod && !mirror.isSetter && !mirror.isGetter && !mirror.isConstructor) {
+            methods.add(new Method(name, mirror, instanceMirror));
+          }
 
-        // add method
-        if(mirror.isRegularMethod && !mirror.isSetter && !mirror.isGetter && !mirror.isConstructor) {
-          methods.add(new Method(name, instanceMirror));
-        }
+          // add getter
+          else if(mirror.isGetter && !mirror.isSynthetic) {
+            getter.add(new Getter(name, mirror, instanceMirror));
+          }
 
-        // add getter
-        else if(mirror.isGetter && !mirror.isSynthetic) {
-          getter.add(new Getter(name, instanceMirror));
-        }
-
-        // add setter
-        else if(mirror.isSetter && !mirror.isSynthetic) {
-          setter.add(new Setter(name, instanceMirror));
+          // add setter
+          else if(mirror.isSetter && !mirror.isSynthetic) {
+            setter.add(new Setter(name, mirror, instanceMirror));
+          }
         }
 
         // add field
-        // TODO: iterate thru instanceMirror.type.declarations[name] to get fields
-        else if(mirror.isGetter || mirror.isSetter) {
-          if(!fields.contains(util.createInstanceMemberName(name))) {
-            fields.add(new Field(name, instanceMirror));
-          }
+        else if(mirror is VariableMirror) {
+          fields.add(new Field(name, mirror, instanceMirror));
         }
       }
     });

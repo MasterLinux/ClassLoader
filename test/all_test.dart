@@ -71,12 +71,18 @@ main() {
 
     test('find first field with specific annotation', () {
       var fieldUnderTest = classLoader.fields.firstWhereMetadata((name, meta) => name == #MockFieldAnnotation, orElse: () => null);
+      var orElseResult = classLoader.fields.firstWhereMetadata((name, annotation) => false, orElse: () => null);
 
       expect(fieldUnderTest, isNotNull);
+      expect(fieldUnderTest is Field, isTrue);
+      expect(orElseResult, isNull);
     });
 
     test('find all fields with specific annotation', () {
-      // TODO
+      var fieldsUnderTest = classLoader.fields.whereMetadata((name, annotation) => name == #MockFieldAnnotation);
+
+      expect(fieldsUnderTest, isNotEmpty);
+      expect(fieldsUnderTest.length, 2);
     });
 
     test('find first method with specific annotation', () {
@@ -140,7 +146,13 @@ class ArticleMock {
   List<String> _authors = <String>[];
 
   @MockField
-  int date = 42;
+  int date = 42435345345345345;
+
+  @MockField
+  String dateFormat = "dd-MM-yy";
+
+  bool isVisible = false;
+
 
   @MockGetter
   String get title => _title;
