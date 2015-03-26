@@ -22,6 +22,7 @@ class ClassLoader<T> {
   /// Gets all setter of the reflected class
   final InstanceMemberCollection<Setter> setter = new InstanceMemberCollection<Setter>();
 
+  /// Gets all fields of the reflected class
   final InstanceMemberCollection<Field> fields = new InstanceMemberCollection<Field>();
 
   /// Initializes the loader with the help of the [libraryName]
@@ -47,6 +48,7 @@ class ClassLoader<T> {
     _load(_classMirror, _instanceMirror, excludePrivateMembers);
   }
 
+  // TODO: make public, change signature, use async keyword
   void _load(ClassMirror classMirror, InstanceMirror instanceMirror, bool excludePrivateMembers) {
     _metadata = new MetadataCollection(classMirror);
 
@@ -81,6 +83,7 @@ class ClassLoader<T> {
   /// Gets the instance of the loaded class
   T get instance => _instanceMirror.reflectee as T;
 
+  /// Gives access to the metadata (annotations) of the loaded class
   MetadataCollection get metadata => _metadata;
 
   /// Returns true if class contains a [Getter] with the given [name]
