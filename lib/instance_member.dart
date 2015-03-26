@@ -14,6 +14,7 @@ abstract class InstanceMember<T extends DeclarationMirror> {
   /// Gets the name of the instance member
   final Symbol name;
 
+  /// Initializes the instance member
   InstanceMember(this.name, this.mirror, this.owner) {
     _metadata = new MetadataCollection(mirror);
   }
@@ -31,6 +32,17 @@ abstract class InstanceMember<T extends DeclarationMirror> {
   }
 }
 
+/// Representation of a method.
+///
+/// Example:
+///   // method in reflected class
+///   bool isSame(int x, int y) {
+///     return x == y;
+///   }
+///
+///   // invoke method
+///   var isSame = classLoader.methods[#isSame].invoke([2, 3]);
+///
 class Method extends InstanceMember<MethodMirror> {
 
   /// Returns true if method is abstract
@@ -48,26 +60,59 @@ class Method extends InstanceMember<MethodMirror> {
   }
 }
 
+/// Representation of a getter.
+///
+/// Example:
+///   // getter in reflected class
+///   String get title => "title";
+///
+///   // get the value of this getter
+///   var getterValue = classLoader.getter[#title].get();
+///
 class Getter extends InstanceMember<MethodMirror> {
 
-  /// Initializes the field
+  /// Initializes the getter
   Getter(Symbol name, MethodMirror mirror, InstanceMirror owner) : super(name, mirror, owner);
 
   /// Gets the value
   Object get() => owner.getField(name).reflectee;
 }
 
+/// Representation of a setter.
+///
+/// Example:
+///   // setter in reflected class
+///   set title(String t) => _title = t;
+///
+///   // set a new value
+///   classLoader.setter[#title].set("new title");
+///
 class Setter extends InstanceMember<MethodMirror> {
 
-  /// Initializes the field
+  /// Initializes the setter
   Setter(Symbol name, MethodMirror mirror, InstanceMirror owner) : super(util.createInstanceMemberName(name), mirror, owner);
 
   /// Sets the given [value]
   set(Object value) => owner.setField(name, value).reflectee;
 }
 
+/// Representation of a field. A field has a getter and a setter.
+/// These are synthetic and can be accessed by using [Field.get()]
+/// and [Field.set()].
+///
+/// Example:
+///   // field in reflected class
+///   int length = 2;
+///
+///   // get the value
+///   var len = classLoader.fields[#length].get();
+///
+///   // set a new value
+///   classLoader.fields[#length].set(42);
+///
 class Field extends InstanceMember<VariableMirror> {
 
+  /// Initializes the field
   Field(Symbol name, VariableMirror mirror, InstanceMirror owner) : super(name, mirror, owner);
 
   /// Gets the value

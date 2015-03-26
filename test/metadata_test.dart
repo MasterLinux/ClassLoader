@@ -8,7 +8,7 @@ class MetadataTests implements TestClass {
       ClassLoader classLoader;
 
       setUp(() async {
-        classLoader = new ClassLoader(#apethory.class_loader.test, #ArticleMock);
+        classLoader = new ClassLoader<ArticleMock>(#apethory.class_loader.test, #ArticleMock);
         await classLoader.load();
       });
 

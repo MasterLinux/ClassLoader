@@ -21,11 +21,40 @@
 
 #How to use
 ###Load class
+There are two ways to load a specific class. So you are able to load a class by its library and name. Let's say we have the following class
+
 ```dart
-var loader = new ClassLoader(new Symbol('my.lib'), new Symbol('ClassName'));
+library player.data;
+
+class AudioFile { }
+```
+
+Then you can load this class like this
+
+```dart
+import 'data/audio_file.dart';
+
+main() async {
+    var loader = new ClassLoader<AudioFile>(#player.data, #AudioFile);
+    await loader.load();
+}
+```
+
+Instead of using `#player.data` it is also possible to use `new Symbol('player.data')`. Another way to load a class is by using an instance of it which is useful whenever you need to access the metadata of an already instantiated class.
+
+```dart
+import 'data/audio_file.dart';
+
+main() async {
+    var audioFile = new AudioFile();
+    var loader = new ClassLoader<AudioFile>.fromInstance(audioFile);
+    await loader.load();
+}
 ```
 
 ###Set or get value (getter & setter)
+
+###Set or get value (field)
 ```dart
 // set value
 loader.fields[new Symbol('setterName')].set('val');

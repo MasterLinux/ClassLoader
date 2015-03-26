@@ -48,6 +48,8 @@ class MethodTests implements TestClass {
 
       test('invoke method via collection', () {
         var sumUnderTest = classLoader.methods.invokeFirstWhere((name, method) => name == #sum, [3, 4]);
+        classLoader.methods.invokeWhere((name, method) => name == #isSame, [3, 4]); // TODO: test results?
+
         expect(sumUnderTest, 7);
       });
     });
