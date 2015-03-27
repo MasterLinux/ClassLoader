@@ -4,6 +4,8 @@ const String AuthorName = "Person_1";
 const String AnotherAuthorName = "Person_2";
 const String ArticleTitle = "Title";
 const String ArticleSubtitle = "Subtitle";
+const int ArticleDate = 42435345345345345;
+const String ArticleDateFormat = "dd-MM-yy";
 
 @Mock
 @MockAuthor(AuthorName)
@@ -14,10 +16,10 @@ class ArticleMock {
   List<String> _authors = <String>[];
 
   @MockField
-  int date = 42435345345345345;
+  int date = ArticleDate;
 
   @MockField
-  String dateFormat = "dd-MM-yy";
+  String dateFormat = ArticleDateFormat;
 
   bool isVisible = false;
 

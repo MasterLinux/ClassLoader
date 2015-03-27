@@ -10,6 +10,7 @@ part 'metadata_test.dart';
 part 'method_test.dart';
 part 'getter_test.dart';
 part 'setter_test.dart';
+part 'field_test.dart';
 
 abstract class TestClass {
   void runTests();
@@ -19,6 +20,7 @@ main() {
   new MethodTests().runTests();
   new GetterTests().runTests();
   new SetterTests().runTests();
+  new FieldTests().runTests();
   new MetadataTests().runTests();
 
   group('utilities tests:', () {
