@@ -1,17 +1,18 @@
 library apetheory.class_loader;
 
 import 'dart:mirrors';
+import 'dart:async' show Future;
 
 import 'utilities.dart' as util;
 
 part 'collection.dart';
 part 'instance_member.dart';
+part 'reflection.dart';
 
 ///
 class ClassLoader<T> {
   MetadataCollection _metadata;
-  InstanceMirror _instanceMirror;
-  ClassMirror _classMirror;
+  _Reflector _reflector;
 
   /// Gets all methods of the reflected class
   final MethodCollection methods = new MethodCollection();
@@ -29,55 +30,50 @@ class ClassLoader<T> {
   /// and [className] of the required class to load. The [constructorName]
   /// can be used to use a specific constructor for initialization
   ClassLoader(Symbol libraryName, Symbol className, [Symbol constructorName, List positionalArguments, Map<Symbol,dynamic> namedArguments]) {
-    _classMirror = _getClassMirror(libraryName, className);
-
-    constructorName = constructorName != null ? constructorName : const Symbol('');
-    positionalArguments = positionalArguments != null ? positionalArguments : [];
-    namedArguments = namedArguments != null ? namedArguments : {};
-
-    _instanceMirror = _classMirror.newInstance(constructorName, positionalArguments, namedArguments);
+    _reflector = new _ConstructorReflector(libraryName, className, constructorName, positionalArguments, namedArguments);
   }
 
   /// Initializes the loader with the help of an instance of the class to reflect
   ClassLoader.fromInstance(T reflectee) {
-    _instanceMirror = reflect(reflectee);
-    _classMirror = _instanceMirror.type;
+    _reflector = new _InstanceReflector<T>(reflectee);
   }
 
   ///
   load({bool excludePrivateMembers: true}) async {
-    _metadata = new MetadataCollection(_classMirror);
+    await _reflector.load();
 
-    _instanceMirror.type.declarations.forEach((name, mirror) {
+    _metadata = new MetadataCollection(_reflector.classMirror);
+
+    _reflector.instanceMirror.type.declarations.forEach((name, mirror) {
 
       if(!mirror.isPrivate || !excludePrivateMembers) {
         if(mirror is MethodMirror) {
           // add method
           if(mirror.isRegularMethod && !mirror.isSetter && !mirror.isGetter && !mirror.isConstructor) {
-            methods.add(new Method(name, mirror, _instanceMirror));
+            methods.add(new Method(name, mirror, _reflector.instanceMirror));
           }
 
           // add getter
           else if(mirror.isGetter && !mirror.isSynthetic) {
-            getter.add(new Getter(name, mirror, _instanceMirror));
+            getter.add(new Getter(name, mirror, _reflector.instanceMirror));
           }
 
           // add setter
           else if(mirror.isSetter && !mirror.isSynthetic) {
-            setter.add(new Setter(name, mirror, _instanceMirror));
+            setter.add(new Setter(name, mirror, _reflector.instanceMirror));
           }
         }
 
         // add field
         else if(mirror is VariableMirror) {
-          fields.add(new Field(name, mirror, _instanceMirror));
+          fields.add(new Field(name, mirror, _reflector.instanceMirror));
         }
       }
     });
   }
 
   /// Gets the instance of the loaded class
-  T get instance => _instanceMirror.reflectee as T;
+  T get instance => _reflector.instanceMirror.reflectee as T;
 
   /// Gives access to the metadata (annotations) of the loaded class
   MetadataCollection get metadata => _metadata;
@@ -90,23 +86,6 @@ class ClassLoader<T> {
 
   /// Returns true if class contains a [Method] with the given [name]
   bool hasMethod(Symbol name) => methods.contains(name);
-
-  /**
-   * Gets the mirror of a specific class with the help of
-   * its [libraryName] and [className].
-   */
-  ClassMirror _getClassMirror(Symbol libraryName, Symbol className) {
-    ClassMirror reflectedClass;
-
-    var mirrorSystem = currentMirrorSystem();
-    var library = mirrorSystem.findLibrary(libraryName);
-
-    if((reflectedClass = library.declarations[className]) != null) {
-      return reflectedClass;
-    } else {
-      throw new MissingClassException(className.toString());
-    }
-  }
 }
 
 /*
