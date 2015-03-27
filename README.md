@@ -55,12 +55,22 @@ main() async {
 ###Set or get value (getter & setter)
 
 ###Set or get value (field)
+To access a field like `fileName` in the following code snippet
+
+```dart
+class AudioFile { 
+    String fileName = "example"; 
+}
+```
+
+you can use `ClassLoader.fields` which is a collection that contains all fields of the reflected class.
+
 ```dart
 // set value
-loader.fields[new Symbol('setterName')].set('val');
+loader.fields[#fileName].set('newFile');
 
 // get value
-var val = loader.fields[new Symbol('setterName')].get();
+var name = loader.fields[#fileName].get();
 ```
 
 ###Invoke method
