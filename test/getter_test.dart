@@ -25,9 +25,8 @@ class GetterTests implements TestClass {
 
       test('get value', () {
         var titleGetterUnderTest = classLoader.getter[#title];
-        expect(titleGetterUnderTest, isNotNull);
-
         var title = titleGetterUnderTest.get();
+
         expect(title, ArticleTitle);
       });
     });

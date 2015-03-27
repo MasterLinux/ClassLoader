@@ -52,7 +52,12 @@ main() async {
 }
 ```
 
-###Set or get value (getter & setter)
+Private class members are hidden by default. Whenever you need to access private members use the `excludePrivateMembers` parameter when calling `load()`.
+
+```dart
+await loader.load(excludePrivateMembers: false);
+var pm = loader.fields[#_privateMember];
+```
 
 ###Set or get value (field)
 To access a field like `fileName` in the following code snippet
@@ -63,7 +68,7 @@ class AudioFile {
 }
 ```
 
-you can use `ClassLoader.fields` which is a collection that contains all fields of the reflected class.
+you can use `loader.fields` which is a collection that contains all fields of the reflected class.
 
 ```dart
 // set value
@@ -73,16 +78,56 @@ loader.fields[#fileName].set('newFile');
 var name = loader.fields[#fileName].get();
 ```
 
+###Set or get value (getter & setter)
+Whenever you need to access a getter or setter use `loader.getter` and `loader.setter`.
+
+```dart
+class AudioFile { 
+    String _composer;
+        
+    String get composer => _composer; 
+    set composer(String c) => _composer = c; 
+}
+```
+
+```dart
+// set value
+loader.setter[#composer].set('example composer');
+
+// get value
+var composer = loader.getter[#composer].get();
+```
+
+A setter can also be accessed by using a setter name `composer=`. In this case you have to use `new Symbol()` because the `=` seems not to be allowed when using the `#` syntax.
+
+```dart
+// set value
+loader.setter[new Symbol('composer=')].set('example composer');
+```
+
 ###Invoke method
+You can also invoke methods.
+
+```dart
+class AudioFile { 
+    void mute() {}
+    AudioFile convert({format: 'mp3'}) {}
+    bool incrementVolumeBy(int i) {}
+}
+```
+
 ```dart
 // invoke without parameter
-loader.methods[new Symbol('methodName')].invoke();
+loader.methods[#mute].invoke();
 
 // invoke with positional parameter
-loader.methods[new Symbol('methodName')].invoke(['val_1', 2]);
+var isIncremented = loader.methods[#incrementVolumeBy].invoke([10]);
 
 // invoke with named parameter
-loader.methods[new Symbol('methodName')].invoke([], {
-    #params: []
+loader.methods[#convert].invoke([], {
+    #format: 'flac'
 });
 ```
+
+###Metadata 
+
