@@ -84,6 +84,9 @@ class ClassLoader<T> {
   /// Returns true if class contains a [Setter] with the given [name]
   bool hasSetter(Symbol name) => setter.contains(name);
 
+  /// Returns true if class contains a [Field] with the given [name]
+  bool hasField(Symbol name) => fields.contains(name);
+
   /// Returns true if class contains a [Method] with the given [name]
   bool hasMethod(Symbol name) => methods.contains(name);
 }
