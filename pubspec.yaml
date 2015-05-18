@@ -1,7 +1,7 @@
 name: class_loader
 description: >
   class_loader is a library which helps to load classes via reflection. It provides a simple API to access all instance members and contains some useful methods to work with metadata annotations.
-version: 0.0.2-alpha.3
+version: 0.0.2
 author: Christoph Grundmann <christoph.grundmann@gmail.com>
 homepage: https://github.com/MasterLinux/ClassLoader
 dev_dependencies:
