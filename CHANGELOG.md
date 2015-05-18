@@ -4,6 +4,10 @@
 * Initial version
 
 ## 0.0.2
-* Add MetadataCollection
-* Add class metadata getter
-* Add method metadata getter
+* Refactored collections to unify the api
+* Add MetadataCollection to provide access to metadata
+* Add getter for accessing class metadata
+* Add getter for querying methods by metadata
+* Add getter for querying fields by metadata
+* Add getter for querying getter and setter by metadata
+

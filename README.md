@@ -3,14 +3,8 @@
 [![Build Status](https://drone.io/github.com/MasterLinux/ClassLoader/status.png)](https://drone.io/github.com/MasterLinux/ClassLoader/latest)
 
 #Milestones
-###0.0.2
-* initial metadata implementation
-* more testing
- * unit tests & performance benchmarking
-
 ###0.0.3
-* method, field and metadata optimizations like
- * access to all available info
+* method, field and metadata optimizations
 
 ###0.0.4
 * class schema for validation
@@ -106,7 +100,7 @@ loader.setter[new Symbol('composer=')].set('example composer');
 ```
 
 ###Invoke method
-You can also invoke methods.
+You can also invoke methods. It is possible to pass positional and named parameter. To access methods you have to use the `methods` collection provided by the loader instance.
 
 ```dart
 class AudioFile { 
@@ -130,4 +124,62 @@ loader.methods[#convert].invoke([], {
 ```
 
 ###Metadata 
+Another useful functionality is the possibility to access the metadata of a class or to query class members by annotations. 
+   
+```dart
+@TrackAuthor('Author Name')
+class AudioFile {
+  String _fileName;
+  
+  @AudioVolume
+  int volume = 100;
 
+  @FileName
+  String get fileName => _fileName;
+
+  @FileName
+  set fileName(String name) => _fileName = name;
+
+  @MuteMethod
+  void mute() {
+    // does nothing
+  }
+}
+```
+
+```dart
+// Check whether class has specific annotation 
+var hasAuthorAnnotation = loader.metadata.contains(#TrackAuthor);
+
+// Get specific annotation
+var authorAnnotation = loader.metadata.firstWhere((name, meta) => name == #TrackAuthor && (meta as TrackAuthor).name == 'Author Name', orElse: () => null);
+
+if(authorAnnotation != null) {
+    print((authorAnnotation as TrackAuthor).name);
+}
+
+
+// Get first occurrence of method with specific annotation
+var muteMethod = loader.methods.firstWhereMetadata((name, meta) => name == #MuteMethod, orElse: () => null);
+
+if(muteMethod != null) {
+    muteMethod.invoke();
+}
+
+
+// Get all setter and getter with specific annotation
+var fileNameSetter = loader.setter.whereMetadata((name, annotation) => name == #FileName);
+var fileNameGetter = loader.getter.whereMetadata((name, annotation) => name == #FileName);
+
+if(fileNameSetter.isNotEmpty()) {
+    fileNameSetter.first.set('test_file_name');
+}
+
+
+// Get first occurrence of field with specific annotation 
+var volumeField = loader.fields.firstWhereMetadata((name, meta) => name == #AudioVolume, orElse: () => null);
+
+if(volumeField != null) {
+    volumeField.set(50);
+}
+```
